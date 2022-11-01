@@ -1,38 +1,34 @@
 import speech_recognition as sr
 import pyttsx3
 from google_trans_new import google_translator
-from gtts import gTTS
-from playsound import playsound
-import os
 
-# initialize the recognizer
+#initialize the recognizer
 r = sr.Recognizer()
 translator = google_translator()
+engine = pyttsx3.init()
 
 #use microphone as source for input
 while True :
-    with sr.Microphone() as source:
-        print("Listening...")
-        voice = r.listen(source)
+    with sr.Microphone(device_index=2) as source:
+        print("Clearing the background noice..")
+        r.adjust_for_ambient_noise(source, duration=1)
+        print("Listening")
+        voice = r.listen(source,timeout=5,phrase_time_limit=5)
+        print("Done recording")
+    try:
+        print("Recognizing")
+        result = r.recognize_google(voice, language='en')
+        print(result)
+    except Exception as ex:
+        print(ex)
+        
+#Translation. It doesn't work due to httpError.
+    def trans():
+        lanInput = input("Type the language code you want to translate")
+        translator = google_translator()
+        translate_text = translator.translate(str(result), lang_tgt=str(lanInput))
+        print(translate_text)
+        engine.say(str(translate_text))
+        engine.runAndWait()
 
-        try:
-            MyText = r.recognize_google(voice)
-            MyText = MyText.lower()
-            print(MyText)
-            if(MyText == "exit"):
-                break
-
-        except sr.UnknownValueError:
-            print("Couldn't understand")
-        except sr.RequestError:
-            print("Couldn't request result from google")
-
-
-        translated_text = translator.translate(MyText, lang_tgt='ja')
-        print(translated_text)
-
-        voice = gTTS(translated_text, lang='ja')
-        voice.save("MyVoice.mp3")
-        playsound("MyVoice.mp3")
-        os.remove("MyVoice.mp3")
 
